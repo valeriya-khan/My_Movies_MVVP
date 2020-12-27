@@ -16,6 +16,7 @@ import androidx.loader.content.AsyncTaskLoader;
 import com.demo.mymoviesmvvp.api.ApiMovieFactory;
 import com.demo.mymoviesmvvp.api.ApiMovieService;
 import com.demo.mymoviesmvvp.data.MoviesDatabase;
+import com.demo.mymoviesmvvp.pojo.FavouriteMovie;
 import com.demo.mymoviesmvvp.pojo.Movie;
 import com.demo.mymoviesmvvp.pojo.MovieResponse;
 import com.demo.mymoviesmvvp.pojo.Trailer;
@@ -33,6 +34,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MainViewModel extends AndroidViewModel {
     private static LiveData<List<Movie>> movies;
+    private static LiveData<List<FavouriteMovie>> favouriteMovies;
     private static MutableLiveData<List<Trailer>> trailers;
     private static MoviesDatabase database;
     private static final String BASE_POSTER_URL = "https://image.tmdb.org/t/p/";
@@ -51,10 +53,15 @@ public class MainViewModel extends AndroidViewModel {
         super(application);
         database = MoviesDatabase.getInstance(getApplication());
         movies = database.movieDao().getAllMovies();
+        favouriteMovies = database.movieDao().getAllFavouriteMovies();
         trailers = new MutableLiveData<>();
         compositeDisposable = new CompositeDisposable();
         apiMovieFactory = ApiMovieFactory.getInstance();
         apiMovieService = apiMovieFactory.getApiMovieService();
+    }
+
+    public LiveData<List<FavouriteMovie>> getFavouriteMovies() {
+        return favouriteMovies;
     }
 
     public MutableLiveData<List<Trailer>> getTrailers() {
@@ -108,6 +115,27 @@ public class MainViewModel extends AndroidViewModel {
         }
     }
 
+    public FavouriteMovie getFavouriteMovieById(int id){
+        try {
+            return new GetFavouriteMovieByIdTask().execute(id).get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static class GetFavouriteMovieByIdTask extends AsyncTask<Integer,Void,FavouriteMovie>{
+        @Override
+        protected FavouriteMovie doInBackground(Integer... integers) {
+            if(integers!=null && integers.length>0){
+                return database.movieDao().getFavouriteMovieById(integers[0]);
+            }
+            return null;
+        }
+    }
+
     private static class DeleteAllMovies extends AsyncTask<Void,Void,Void>{
         @Override
         protected Void doInBackground(Void... voids) {
@@ -115,6 +143,36 @@ public class MainViewModel extends AndroidViewModel {
             return null;
         }
     }
+
+    public void insertFavouriteMovie(FavouriteMovie favouriteMovie){
+        new InsertFavouriteMovieTask().execute(favouriteMovie);
+    }
+
+    private static class InsertFavouriteMovieTask extends AsyncTask<FavouriteMovie,Void,Void>{
+        @Override
+        protected Void doInBackground(FavouriteMovie... favouriteMovies) {
+            if(favouriteMovies!=null && favouriteMovies.length>0){
+                database.movieDao().insertFavouriteMovie(favouriteMovies[0]);
+            }
+            return null;
+        }
+    }
+
+    public void deleteFavouriteMovie(FavouriteMovie favouriteMovie){
+        new DeleteFavouriteMovieTask().execute(favouriteMovie);
+    }
+
+    private static class DeleteFavouriteMovieTask extends AsyncTask<FavouriteMovie,Void,Void>{
+        @Override
+        protected Void doInBackground(FavouriteMovie... favouriteMovies) {
+            if(favouriteMovies!=null && favouriteMovies.length>0){
+                database.movieDao().deleteFavouriteMovie(favouriteMovies[0]);
+            }
+            return null;
+        }
+    }
+
+
 
     public void  loadData(String lang, boolean isTopRated, int page){
 

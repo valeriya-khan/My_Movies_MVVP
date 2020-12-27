@@ -1,5 +1,6 @@
 package com.demo.mymoviesmvvp.screens.mainscreen;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
@@ -9,6 +10,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -18,6 +22,7 @@ import com.demo.mymoviesmvvp.screens.detailscreen.DetailActivity;
 import com.demo.mymoviesmvvp.R;
 import com.demo.mymoviesmvvp.adapters.MovieAdapter;
 import com.demo.mymoviesmvvp.pojo.Movie;
+import com.demo.mymoviesmvvp.screens.favouritescreen.FavouriteActivity;
 
 import java.util.List;
 import java.util.Locale;
@@ -74,11 +79,34 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 Movie movie = adapter.getMovies().get(position);
                 intent.putExtra("movieId",movie.getId());
+                intent.putExtra("source","MainActivity");
                 startActivity(intent);
             }
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        switch(id){
+            case R.id.itemMain:
+                Intent intent = new Intent(this,MainActivity.class);
+                startActivity(intent);
+                break;
+            default:
+                Intent intentToFavourite = new Intent(this, FavouriteActivity.class);
+                startActivity(intentToFavourite);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     public void onClickSetPopularity(View view) {
         switchSort.setChecked(false);
